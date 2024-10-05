@@ -33,6 +33,7 @@
    <button class="btn" onclick="agregarRegistro()">Agregar Registro</button>
    <div id="resultado"></div>
 
+
    <table class="table" id="tabla-registros">
      <thead>
        <tr>
@@ -47,12 +48,14 @@
    </table>
  </div>
 
+
  <script>
    // Función para cargar los registros desde Google Sheets
    function cargarRegistros() {
      google.script.run.withSuccessHandler(function(data) {
        const tbody = document.querySelector('#tabla-registros tbody');
        tbody.innerHTML = '';
+
 
        data.forEach((registro, index) => {
          if (index === 0) return; // Saltar la primera fila (encabezados)
@@ -67,3 +70,63 @@
          `;
          tbody.appendChild(row);
        });
+     }).obtenerRegistros();
+   }
+
+
+   // Función para agregar un nuevo registro
+   function agregarRegistro() {
+     const nombre = document.getElementById('nombre').value;
+     const email = document.getElementById('email').value;
+
+
+     if (nombre && email) {
+       const nuevoRegistro = { nombre, email };
+       google.script.run.withSuccessHandler(function() {
+         cargarRegistros();
+         limpiarFormulario();
+       }).agregarRegistro(nuevoRegistro);
+     } else {
+       alert('Por favor, completa todos los campos.');
+     }
+   }
+
+
+   // Función para editar un registro
+   function editarRegistro(row, nombreActual, emailActual) {
+     const nuevoNombre = prompt('Nuevo nombre:', nombreActual);
+     const nuevoEmail = prompt('Nuevo email:', emailActual);
+
+
+     if (nuevoNombre && nuevoEmail) {
+       const registroActualizado = { row, nombre: nuevoNombre, email: nuevoEmail };
+       google.script.run.withSuccessHandler(function() {
+         cargarRegistros();
+       }).actualizarRegistro(registroActualizado);
+     }
+   }
+
+
+   // Función para eliminar un registro
+   function eliminarRegistro(row) {
+     if (confirm('¿Estás seguro de que deseas eliminar este registro?')) {
+       google.script.run.withSuccessHandler(function() {
+         cargarRegistros();
+       }).eliminarRegistro(row);
+     }
+   }
+
+
+   // Función para limpiar el formulario
+   function limpiarFormulario() {
+     document.getElementById('nombre').value = '';
+     document.getElementById('email').value = '';
+   }
+
+
+   // Cargar registros al cargar la página
+   window.onload = cargarRegistros;
+ </script>
+</body>
+</html>
+
